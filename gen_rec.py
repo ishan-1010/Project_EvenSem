@@ -1,8 +1,8 @@
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 import random
+import sys
 
-# Load the Instacart dataset - read only first 1000 rows
 # Replace with the actual path to the products.csv file
 products_df = pd.read_csv(
     r"C:\Users\Ishan\Downloads\instacart-market-basket-analysis\products.csv")
@@ -10,8 +10,7 @@ products_df = pd.read_csv(
 orders_df = pd.read_csv(
     r"C:\Users\Ishan\Downloads\instacart-market-basket-analysis\order_products__prior.csv", nrows=500000)
 
-# Specify the user ID to generate recommendations for
-user = 1
+user = sys.argv[1]
 
 # Get the products ordered by the selected user
 user_products = orders_df.loc[orders_df['order_id']
@@ -62,6 +61,5 @@ recommended_product_names = recommended_product_names[:5]
 # Store recommendations in a file for the current user
 username = f"user{user}"
 with open(f"{username}_recommendations.txt", "w") as file:
-    file.write(f"Recommended products for {username}:\n")
     for product in recommended_product_names:
         file.write(product + "\n")
