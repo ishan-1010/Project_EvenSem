@@ -1,49 +1,40 @@
 import pandas as pd
+from sklearn.neighbors import NearestNeighbors
+import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
-import random
-import sys
+
 
 # Replace with the actual path to the products.csv file
 products_df = pd.read_csv(
     r"https://raw.githubusercontent.com/ishan-1010/Project_EvenSem/main/products.csv")
 # Replace with the actual path to the order_products__prior.csv file
 orders_df = pd.read_csv(
-    r"https://raw.githubusercontent.com/ishan-1010/Project_EvenSem/main/order_products__prior.csv")
+    r"https://raw.githubusercontent.com/ishan-1010/Project_EvenSem/main/order_products__prior.csv", nrows=100000)
 
-user = sys.argv[1]
+# Specify the user ID to generate recommendations for
+user = 3
 
 # Get the products ordered by the selected user
 user_products = orders_df.loc[orders_df['order_id']
                               == user, 'product_id'].tolist()
 
-# Calculate similarity scores using Jaccard similarity
+# Calculate cosine similarity between all orders and the selected user's orders
+orders_matrix = pd.pivot_table(orders_df, values='reordered',
+                               index='order_id', columns='product_id', aggfunc=np.sum, fill_value=0)
+cosine_sim = cosine_similarity(orders_matrix)
 
+# Find the k-nearest neighbors of the selected user
+k = 5  # Number of neighbors to consider
+knn = NearestNeighbors(n_neighbors=k, metric='cosine')
+knn.fit(cosine_sim)
+user_index = orders_df[orders_df['order_id'] == user].index[0]
+neighbors = knn.kneighbors(
+    cosine_sim[user_index].reshape(1, -1), return_distance=False)
 
-def jaccard_similarity(a, b):
-    intersection_cardinality = len(set(a) & set(b))
-    union_cardinality = len(set(a) | set(b))
-    return intersection_cardinality / float(union_cardinality)
-
-
-# Calculate similarity scores for all orders
-similarity_scores = {}
-for order in orders_df['order_id'].unique():
-    if order != user:
-        order_products = orders_df.loc[orders_df['order_id']
-                                       == order, 'product_id'].tolist()
-        similarity_scores[order] = jaccard_similarity(
-            user_products, order_products)
-
-# Sort users by similarity score in descending order
-similarity_scores = sorted(
-    similarity_scores.items(), key=lambda x: x[1], reverse=True)
-
-# Get product recommendations from top similar users
-num_recommendations = 5  # Number of recommendations to generate
-recommended_user_orders = [user[0]
-                           for user in similarity_scores[:num_recommendations]]
+# Get product recommendations from the top k neighbors
+recommended_orders = orders_df.loc[neighbors[0], 'order_id']
 recommended_product_ids = orders_df.loc[orders_df['order_id'].isin(
-    recommended_user_orders), 'product_id'].value_counts().index.tolist()
+    recommended_orders), 'product_id'].value_counts().index.tolist()
 
 # Get product names from product IDs
 recommended_product_names = products_df.loc[products_df['product_id'].isin(
@@ -60,6 +51,6 @@ recommended_product_names = recommended_product_names[:5]
 
 # Store recommendations in a file for the current user
 username = f"user{user}"
-with open(f"{username}_recommendations.txt", "w") as file:
+with open(f"{username}_recommendationsNEW.txt", "w") as file:
     for product in recommended_product_names:
         file.write(product + "\n")
