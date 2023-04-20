@@ -5,10 +5,10 @@ import sys
 
 # Replace with the actual path to the products.csv file
 products_df = pd.read_csv(
-    r"C:\Users\Ishan\Downloads\instacart-market-basket-analysis\products.csv")
+    r"https://raw.githubusercontent.com/ishan-1010/Project_EvenSem/main/products.csv")
 # Replace with the actual path to the order_products__prior.csv file
 orders_df = pd.read_csv(
-    r"C:\Users\Ishan\Downloads\instacart-market-basket-analysis\order_products__prior.csv", nrows=500000)
+    r"https://raw.githubusercontent.com/ishan-1010/Project_EvenSem/main/order_products__prior.csv")
 
 user = sys.argv[1]
 
