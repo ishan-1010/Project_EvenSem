@@ -2,7 +2,7 @@
 include("connection.php");
 session_start();
 ?>
-
+ 
 <?php
 if (isset($_POST['logout'])) {
     // Unset all session variables
